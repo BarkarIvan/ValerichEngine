@@ -1,6 +1,16 @@
 from config import *
 
 
+class QueueFamilyIndices:
+
+    def __init__(self):
+        self.graphicsQueueFamily = None
+        self.presentQueueFamily = None
+
+    def is_complete(self):
+        return not (self.graphicsQueueFamily is None or self.presentQueueFamily is None)
+
+
 def log_device_properties(device):
     properties = vkGetPhysicalDeviceProperties(device)
 
@@ -62,7 +72,7 @@ def choose_physical_device(instance, debug):
     if debug:
         print(f"There are {len(availableDevices)} physical devices on this system")
     
-    #check if a suitable divice can be found
+    #check if a suitable device can be found
 
     for device in availableDevices:
         if debug:
@@ -70,3 +80,22 @@ def choose_physical_device(instance, debug):
         if is_suitable(device, debug):
             return device
     return None
+
+def find_queue_families(device, debug):
+    indices = QueueFamilyIndices()
+    queueFamilies = vkGetPhysicalDeviceQueueFamilyProperties(device)
+    if debug:
+        print(f"There are {len(queueFamilies)} queue families available on the system")
+
+    for i, queueFamily in enumerate(queueFamilies):
+        if queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT:
+            indices.graphicsFamily = i
+            indices.presentFamily = i
+
+            if debug:
+                print(f"Queue family {i} is suitable for graphics and presenting")
+
+        if indices.is_complete():
+            break
+
+    return indices
